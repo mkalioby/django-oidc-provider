@@ -174,6 +174,7 @@ class DefaultSettings(object):
         OPTIONAL: A boolean to specify whether or not to include scope in introspection response.
         """
         return False
+
     @property
     def OIDC_DISCOVERY_SCOPES(self):
         return settings.get("OIDC_DISCOVERY_SCOPES")
