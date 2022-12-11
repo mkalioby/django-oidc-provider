@@ -74,6 +74,7 @@ class AuthorizeEndpoint(object):
         self.params['client_id'] = query_dict.get('client_id', '')
         self.params['redirect_uri'] = query_dict.get('redirect_uri', '')
         self.params['response_type'] = query_dict.get('response_type', '')
+        self.params['response_mode'] = query_dict.get('response_mode', None)
         self.params['scope'] = query_dict.get('scope', '').split()
         self.params['state'] = query_dict.get('state', '')
         self.params['nonce'] = query_dict.get('nonce', '')
