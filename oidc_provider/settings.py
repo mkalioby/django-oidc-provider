@@ -179,6 +179,10 @@ class DefaultSettings(object):
     def OIDC_DISCOVERY_SCOPES(self):
         return None
 
+    @property
+    def OIDC_DISCOVERY_CLAIMS(self):
+        return None
+
 default_settings = DefaultSettings()
 
 
