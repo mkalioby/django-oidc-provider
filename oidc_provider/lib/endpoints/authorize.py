@@ -81,6 +81,7 @@ class AuthorizeEndpoint(object):
         self.params['response_mode'] = query_dict.get('response_mode', None)
         self.params['request'] = query_dict.get('request', None)
         self.params['scope'] = query_dict.get('scope', '').split()
+        print("Scopes",self.params['scope'])
         self.params['state'] = query_dict.get('state', '')
         self.params['nonce'] = query_dict.get('nonce', '')
         self.params['max_age'] = query_dict.get('max_age', '')
