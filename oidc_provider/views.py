@@ -204,6 +204,9 @@ class AuthorizeView(View):
 
             # Save the user consent given to the client.
             authorize.set_client_user_consent()
+            if authorize.params.get('response_mode') == "form_post":
+                url, params = authorize.create_response_uri(mode="POST")
+                return render(request, 'oidc_provider/form_post.html', {"url": url, "params": params})
 
             uri = authorize.create_response_uri()
 
