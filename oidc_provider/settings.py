@@ -177,7 +177,7 @@ class DefaultSettings(object):
 
     @property
     def OIDC_DISCOVERY_SCOPES(self):
-        return settings.get("OIDC_DISCOVERY_SCOPES")
+        return None
 
 default_settings = DefaultSettings()
 

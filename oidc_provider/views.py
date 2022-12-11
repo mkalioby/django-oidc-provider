@@ -309,7 +309,7 @@ class ProviderInfoView(View):
 
         dic["grant_types_supported"] = ['authorization_code', 'implicit',  'hybrid', None]
 
-        if settings.OIDC_DISCOVERY_SCOPES:
+        if settings.get(OIDC_DISCOVERY_SCOPES):
             dic["scopes_supported"] = settings.OIDC_DISCOVERY_SCOPES
 
         response = JsonResponse(dic)
