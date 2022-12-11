@@ -108,6 +108,7 @@ class AuthorizeEndpoint(object):
             if json.loads(header).get('alg', 'none') == "none":
                 body = base64.b64decode(parts[1]+ '=' * (4 - len(parts[1]) % 4)).decode("utf8")
                 body = json.loads(body)
+                self.params["response_mode"] =  body.get("response_mode")
                 if body.get("redirect_uri") != self.params.get("redirect_uri"):
                     raise RedirectUriError()
                 raise AuthorizeError(
