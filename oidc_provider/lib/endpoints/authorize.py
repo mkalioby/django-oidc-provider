@@ -99,7 +99,7 @@ class AuthorizeEndpoint(object):
         # Client validation.
         if self.params['response_type'] == '':
             raise AuthorizeError(
-                self.params['redirect_uri'], 'request_not_supported', self.grant_type)
+                self.params['redirect_uri'], 'unsupported_response_type', self.grant_type)
         if self.params["request"] is not None:
             import base64
             parts = self.params["request"].split(".",2)
