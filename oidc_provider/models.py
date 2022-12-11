@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import base64
 import binascii
 from hashlib import md5, sha256
@@ -6,7 +5,7 @@ import json
 
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
 
@@ -163,9 +162,22 @@ class BaseCodeTokenModel(models.Model):
     client = models.ForeignKey(Client, verbose_name=_(u'Client'), on_delete=models.CASCADE)
     expires_at = models.DateTimeField(verbose_name=_(u'Expiration Date'))
     _scope = models.TextField(default='', verbose_name=_(u'Scopes'))
+    _acr_values = models.TextField(default=None, verbose_name=_(u'ACR'),null=True)
+
 
     class Meta:
         abstract = True
+    @property
+    def acr_values(self):
+        if self._acr_values:
+            return json.loads(self._acr_values)
+
+    @acr_values.setter
+    def acr_values(self,value):
+        if type(value) is list:
+            self._acr_values =json.dumps(value)
+        else:
+            self._acr_values = value
 
     @property
     def scope(self):
@@ -192,6 +204,7 @@ class Code(BaseCodeTokenModel):
     code_challenge = models.CharField(max_length=255, null=True, verbose_name=_(u'Code Challenge'))
     code_challenge_method = models.CharField(
         max_length=255, null=True, verbose_name=_(u'Code Challenge Method'))
+    acr_values = models.CharField(default=None, null=True, blank=True, max_length=255)
 
     class Meta:
         verbose_name = _(u'Authorization Code')

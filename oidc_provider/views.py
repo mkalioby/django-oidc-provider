@@ -77,6 +77,12 @@ class AuthorizeView(View):
                     client=authorize.client)
                 if hook_resp:
                     return hook_resp
+                if authorize.params['max_age']:
+                    from django.utils import timezone
+                    if (timezone.now() - request.user.last_login).total_seconds() > int(authorize.params['max_age']):
+                        django_user_logout(request)
+                        next_page = strip_prompt_login(request.get_full_path())
+                        return redirect_to_login(next_page, settings.get('OIDC_LOGIN_URL'))
 
                 if 'login' in authorize.params['prompt']:
                     if 'none' in authorize.params['prompt']:
@@ -127,7 +133,13 @@ class AuthorizeView(View):
                 if 'none' in authorize.params['prompt']:
                     raise AuthorizeError(
                         authorize.params['redirect_uri'], 'consent_required', authorize.grant_type)
-
+                if type(authorize.params['claims'] is dict):
+                    if "userinfo" in authorize.params['claims']:
+                        authorize.params['scope'].extend(list(authorize.params['claims']['userinfo'].keys()))
+                    if "id_token" in authorize.params['claims']:
+                        authorize.params['scope'].extend(list(authorize.params['claims']['id_token'].keys()))
+                elif type(authorize.params['claims']) is list:
+                    authorize.params['scope'].extend(authorize.params['claims'])
                 # Generate hidden inputs for the form.
                 context = {
                     'params': authorize.params,
@@ -138,7 +150,6 @@ class AuthorizeView(View):
                 # since we don't need to print it.
                 if 'openid' in authorize.params['scope']:
                     authorize.params['scope'].remove('openid')
-
                 context = {
                     'client': authorize.client,
                     'hidden_inputs': hidden_inputs,
@@ -173,7 +184,7 @@ class AuthorizeView(View):
             return redirect(uri)
 
     def post(self, request, *args, **kwargs):
-        authorize = AuthorizeEndpoint(request)
+        authorize = self.authorize_endpoint_class(request)
 
         try:
             authorize.validate_params()
@@ -207,20 +218,22 @@ class AuthorizeView(View):
 
 
 class TokenView(View):
+    token_endpoint_class = TokenEndpoint
+
     def post(self, request, *args, **kwargs):
-        token = TokenEndpoint(request)
+        token = self.token_endpoint_class(request)
 
         try:
             token.validate_params()
 
             dic = token.create_response_dic()
 
-            return TokenEndpoint.response(dic)
+            return self.token_endpoint_class.response(dic)
 
         except TokenError as error:
-            return TokenEndpoint.response(error.create_dict(), status=400)
+            return self.token_endpoint_class.response(error.create_dict(), status=400)
         except UserAuthError as error:
-            return TokenEndpoint.response(error.create_dict(), status=403)
+            return self.token_endpoint_class.response(error.create_dict(), status=403)
 
 
 @require_http_methods(['GET', 'POST', 'OPTIONS'])
@@ -247,7 +260,8 @@ def userinfo(request, *args, **kwargs):
     dic = {
         'sub': token.id_token.get('sub'),
     }
-
+    if token._acr_values:
+        dic['acr_values'] = token._acr_values
     standard_claims = StandardScopeClaims(token)
     dic.update(standard_claims.create_response_dic())
 
@@ -366,16 +380,18 @@ class CheckSessionIframeView(View):
 
 
 class TokenIntrospectionView(View):
+    token_instrospection_endpoint_class = TokenIntrospectionEndpoint
+
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(TokenIntrospectionView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        introspection = TokenIntrospectionEndpoint(request)
+        introspection = self.token_instrospection_endpoint_class(request)
 
         try:
             introspection.validate_params()
             dic = introspection.create_response_dic()
-            return TokenIntrospectionEndpoint.response(dic)
+            return self.token_instrospection_endpoint_class.response(dic)
         except TokenIntrospectionError:
-            return TokenIntrospectionEndpoint.response({'active': False})
+            return self.token_instrospection_endpoint_class.response({'active': False})

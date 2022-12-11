@@ -20,12 +20,12 @@ def extract_access_token(request):
     Return a string.
     """
     auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-
-    if re.compile('^[Bb]earer\s{1}.+$').match(auth_header):
+    if re.compile(r'^[Bb]earer\s{1}.+$').match(auth_header):
         access_token = auth_header.split()[1]
     else:
         access_token = request.GET.get('access_token', '')
-
+    if access_token in (None,'') and b'access_token' in request.body:
+        access_token = request.body.split(b"access_token=")[1].decode("utf8")
     return access_token
 
 
@@ -39,7 +39,7 @@ def extract_client_auth(request):
     """
     auth_header = request.META.get('HTTP_AUTHORIZATION', '')
 
-    if re.compile('^Basic\s{1}.+$').match(auth_header):
+    if re.compile(r'^Basic\s{1}.+$').match(auth_header):
         b64_user_pass = auth_header.split()[1]
         try:
             user_pass = b64decode(b64_user_pass).decode('utf-8').split(':')

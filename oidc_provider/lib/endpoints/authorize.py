@@ -1,9 +1,13 @@
+import json
 from datetime import timedelta
 from hashlib import (
     md5,
     sha256,
 )
 import logging
+
+import jwt
+
 try:
     from urllib import urlencode
     from urlparse import urlsplit, parse_qs, urlunsplit
@@ -75,10 +79,16 @@ class AuthorizeEndpoint(object):
         self.params['redirect_uri'] = query_dict.get('redirect_uri', '')
         self.params['response_type'] = query_dict.get('response_type', '')
         self.params['response_mode'] = query_dict.get('response_mode', None)
+        self.params['request'] = query_dict.get('request', None)
         self.params['scope'] = query_dict.get('scope', '').split()
         self.params['state'] = query_dict.get('state', '')
         self.params['nonce'] = query_dict.get('nonce', '')
-
+        self.params['max_age'] = query_dict.get('max_age', '')
+        acr_values = query_dict.get('acr_values', None)
+        if acr_values:
+            self.params['acr_values']=acr_values.split()
+        claims = query_dict.get('claims', '[]')
+        self.params['claims']=json.loads(claims)
         self.params['prompt'] = self._allowed_prompt_params.intersection(
             set(query_dict.get('prompt', '').split()))
 
@@ -87,6 +97,18 @@ class AuthorizeEndpoint(object):
 
     def validate_params(self):
         # Client validation.
+        if self.params["request"] is not None:
+            import base64
+            parts = self.params["request"].split(".",2)
+            header = base64.urlsafe_b64decode(parts[0] + '=' * (4 - len(parts[0]) % 4))
+            if json.loads(header).get('alg', 'none') == "none":
+                body = base64.b64decode(parts[1]).decode("utf8")
+                body = json.loads(body)
+                if body.get("redirect_uri") != self.params.get("redirect_uri"):
+                    raise RedirectUriError()
+                raise AuthorizeError(
+                    self.params['redirect_uri'], 'request_not_supported', self.grant_type)
+
         try:
             self.client = self.client_class.objects.get(client_id=self.params['client_id'])
         except Client.DoesNotExist:
@@ -141,7 +163,8 @@ class AuthorizeEndpoint(object):
                     nonce=self.params['nonce'],
                     is_authentication=self.is_authentication,
                     code_challenge=self.params['code_challenge'],
-                    code_challenge_method=self.params['code_challenge_method'])
+                    code_challenge_method=self.params['code_challenge_method'],
+                    acr_values=self.params.get('acr_values'))
                 code.save()
 
             if self.grant_type == 'authorization_code':
@@ -151,7 +174,7 @@ class AuthorizeEndpoint(object):
                 token = create_token(
                     user=self.request.user,
                     client=self.client,
-                    scope=self.params['scope'])
+                    scope=self.params['scope'], acr_values=self.params['acr_values'])
 
                 # Check if response_type must include access_token in the response.
                 if (self.params['response_type'] in
