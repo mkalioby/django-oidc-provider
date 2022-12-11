@@ -307,8 +307,14 @@ class ProviderInfoView(View):
         if settings.get('OIDC_SESSION_MANAGEMENT_ENABLE'):
             dic['check_session_iframe'] = site_url + reverse('oidc_provider:check-session-iframe')
 
+        dic["grant_types_supported"] = ['authorization_code', 'implicit',  'hybrid', None]
+
+        if settings.get("OIDC_DISCOVERY_SCOPES"):
+            dic["scopes_supported"] = settings.get("OIDC_DISCOVERY_SCOPES")
+
         response = JsonResponse(dic)
         response['Access-Control-Allow-Origin'] = '*'
+
 
         return response
 

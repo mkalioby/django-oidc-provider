@@ -245,3 +245,13 @@ A flag which toggles whether the scope is returned with successful response on i
 Must be ``True`` to include ``scope`` into the successful response
 
 Default is ``False``.
+
+OIDC_DISCOVERY_SCOPES
+======================
+OPTIONAL ``None``
+
+The scopes that shall be listed in the Discovery endpoint
+
+Must by ``List`` of scopes.
+
+Default to ``None``
