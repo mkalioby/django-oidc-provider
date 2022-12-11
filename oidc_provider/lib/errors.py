@@ -104,23 +104,26 @@ class AuthorizeError(Exception):
         self.redirect_uri = redirect_uri
         self.grant_type = grant_type
 
-    def create_uri(self, redirect_uri, state):
+    def create_uri(self, redirect_uri, state, mode="GET"):
         description = quote(self.description)
 
         # See:
         # http://openid.net/specs/openid-connect-core-1_0.html#ImplicitAuthError
-        hash_or_question = '#' if self.grant_type == 'implicit' else '?'
+        if mode == "GET":
+            hash_or_question = '#' if self.grant_type == 'implicit' else '?'
 
-        uri = '{0}{1}error={2}&error_description={3}'.format(
-            redirect_uri,
-            hash_or_question,
-            self.error,
-            description)
+            uri = '{0}{1}error={2}&error_description={3}'.format(
+                redirect_uri,
+                hash_or_question,
+                self.error,
+                description)
 
-        # Add state if present.
-        uri = uri + ('&state={0}'.format(state) if state else '')
+            # Add state if present.
+            uri = uri + ('&state={0}'.format(state) if state else '')
+            return uri
+        else:
+            return redirect_uri, {"error":self.error,"error_description":description,"state":state}
 
-        return uri
 
 
 class TokenError(Exception):

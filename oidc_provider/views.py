@@ -176,11 +176,12 @@ class AuthorizeView(View):
             return render(request, OIDC_TEMPLATES['error'], context)
 
         except AuthorizeError as error:
-            uri = error.create_uri(
-                authorize.params['redirect_uri'],
-                authorize.params['state'])
-
-            return redirect(uri)
+            if authorize.params['response_mode']:
+                url, params = error.create_uri(authorize.params['redirect_uri'],authorize.params['state'])
+                return render(request,'oidc_provider/form_post.html', {"url":url, "params":params})
+            else:
+                uri = error.create_uri(authorize.params['redirect_uri'],authorize.params['state'])
+                return redirect(uri)
 
     def post(self, request, *args, **kwargs):
         authorize = self.authorize_endpoint_class(request)
