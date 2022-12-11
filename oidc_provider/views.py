@@ -311,7 +311,8 @@ class ProviderInfoView(View):
 
         if settings.get("OIDC_DISCOVERY_SCOPES"):
             dic["scopes_supported"] = ['openid'] + settings.get("OIDC_DISCOVERY_SCOPES")
-
+        if settings.get("OIDC_DISCOVERY_CLAIMS"):
+            dic["claims_supported"] = settings.get("OIDC_DISCOVERY_CLAIMS")
         response = JsonResponse(dic)
         response['Access-Control-Allow-Origin'] = '*'
 

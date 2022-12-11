@@ -255,3 +255,13 @@ The scopes that shall be listed in the Discovery endpoint
 Must by ``List`` of scopes.
 
 Default to ``None``
+
+OIDC_DISCOVERY_CLAIMS
+======================
+OPTIONAL ``None``
+
+The claims that shall be listed in the Discovery endpoint
+
+Must by ``List`` of claims.
+
+Default to ``None``
