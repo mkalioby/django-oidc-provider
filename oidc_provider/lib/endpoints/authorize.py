@@ -149,7 +149,7 @@ class AuthorizeEndpoint(object):
                 raise AuthorizeError(
                     self.params['redirect_uri'], 'invalid_request', self.grant_type)
 
-    def create_response_uri(self):
+    def create_response_uri(self,mode="GET"):
         uri = urlsplit(self.params['redirect_uri'])
         query_params = parse_qs(uri.query)
         query_fragment = {}
@@ -244,12 +244,14 @@ class AuthorizeEndpoint(object):
         except Exception as error:
             logger.exception('[Authorize] Error when trying to create response uri: %s', error)
             raise AuthorizeError(self.params['redirect_uri'], 'server_error', self.grant_type)
+        if mode == "GET":
+            uri = uri._replace(
+                query=urlencode(query_params, doseq=True),
+                fragment=uri.fragment + urlencode(query_fragment, doseq=True))
 
-        uri = uri._replace(
-            query=urlencode(query_params, doseq=True),
-            fragment=uri.fragment + urlencode(query_fragment, doseq=True))
-
-        return urlunsplit(uri)
+            return urlunsplit(uri)
+        else:
+            return uri, query_fragment
 
     def set_client_user_consent(self):
         """
