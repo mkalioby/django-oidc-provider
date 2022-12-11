@@ -97,7 +97,7 @@ class AuthorizeEndpoint(object):
 
     def validate_params(self):
         # Client validation.
-        if self.params['request_type'] == '':
+        if self.params['response_type'] == '':
             raise AuthorizeError(
                 self.params['redirect_uri'], 'request_not_supported', self.grant_type)
         if self.params["request"] is not None:
