@@ -84,6 +84,7 @@ class AuthorizeEndpoint(object):
         self.params['state'] = query_dict.get('state', '')
         self.params['nonce'] = query_dict.get('nonce', '')
         self.params['max_age'] = query_dict.get('max_age', '')
+        self.params['login_hint'] = query_dict.get('login_hint', '')
         acr_values = query_dict.get('acr_values', None)
         if acr_values:
             self.params['acr_values']=acr_values.split()
@@ -105,7 +106,7 @@ class AuthorizeEndpoint(object):
             parts = self.params["request"].split(".",2)
             header = base64.urlsafe_b64decode(parts[0] + '=' * (4 - len(parts[0]) % 4))
             if json.loads(header).get('alg', 'none') == "none":
-                body = base64.b64decode(parts[1]).decode("utf8")
+                body = base64.b64decode(parts[1]+ '=' * (4 - len(parts[0]) % 4)).decode("utf8")
                 body = json.loads(body)
                 if body.get("redirect_uri") != self.params.get("redirect_uri"):
                     raise RedirectUriError()
