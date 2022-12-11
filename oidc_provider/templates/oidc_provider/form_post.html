@@ -1,0 +1,11 @@
+<html>
+<head><title>Redirecting you back</title></head>
+<body onload="javascript:document.forms[0].submit()">
+<p>Redirecting you to the site, please wait.....</p>
+<form method="post" action="{{ url }}">
+    {%  for p,v in params.items %}
+        <input type="hidden" name="{{ p }}" value="{{ v }}"/>
+    {% endfor %}
+</form>
+</body>
+</html>
