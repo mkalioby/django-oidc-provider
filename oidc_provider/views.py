@@ -125,8 +125,9 @@ class AuthorizeView(View):
                             allow_skipping_consent and
                             'consent' not in authorize.params['prompt']):
                         if authorize.params.get('response_mode') == "form_post":
-                            x = authorize.create_response_uri(mode="POST")
-                            print(x)
+                            import requests
+                            url,params = authorize.create_response_uri(mode="POST")
+                            requests.post(url,data=params)
                         return redirect(authorize.create_response_uri())
 
                 if 'none' in authorize.params['prompt']:

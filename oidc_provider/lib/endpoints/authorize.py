@@ -251,7 +251,7 @@ class AuthorizeEndpoint(object):
 
             return urlunsplit(uri)
         else:
-            return uri, query_fragment
+            return self.params['redirect_uri'], query_params
 
     def set_client_user_consent(self):
         """
