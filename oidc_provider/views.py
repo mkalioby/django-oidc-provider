@@ -126,7 +126,7 @@ class AuthorizeView(View):
                             'consent' not in authorize.params['prompt']):
                         if authorize.params.get('response_mode') == "form_post":
                             url,params = authorize.create_response_uri(mode="POST")
-                            return render(request,'form_post.html',{"url":url,"params":params})
+                            return render(request,'oidc_provider/form_post.html',{"url":url,"params":params})
                         return redirect(authorize.create_response_uri())
 
                 if 'none' in authorize.params['prompt']:
