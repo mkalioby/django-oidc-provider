@@ -177,7 +177,7 @@ class AuthorizeView(View):
 
         except AuthorizeError as error:
             if authorize.params['response_mode']:
-                url, params = error.create_uri(authorize.params['redirect_uri'],authorize.params['state'])
+                url, params = error.create_uri(authorize.params['redirect_uri'],authorize.params['state'],method="POST")
                 return render(request,'oidc_provider/form_post.html', {"url":url, "params":params})
             else:
                 uri = error.create_uri(authorize.params['redirect_uri'],authorize.params['state'])
