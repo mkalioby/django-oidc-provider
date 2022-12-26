@@ -80,6 +80,10 @@ class AuthorizeEndpoint(object):
         self.params['response_type'] = query_dict.get('response_type', '')
         self.params['request'] = query_dict.get('request', None)
         self.params['scope'] = query_dict.get('scope', '').split()
+        login_hint = query_dict.get('login_hint', '')
+        if login_hint:
+            self.params['login_hint']=login_hint
+            self.request.session['login_hint']=login_hint
         self.params['state'] = query_dict.get('state', '')
         self.params['nonce'] = query_dict.get('nonce', '')
         self.params['max_age'] = query_dict.get('max_age', '')
@@ -163,7 +167,7 @@ class AuthorizeEndpoint(object):
                     is_authentication=self.is_authentication,
                     code_challenge=self.params['code_challenge'],
                     code_challenge_method=self.params['code_challenge_method'],
-                    acr_values=self.params.get('acr_values'))
+                    acr_values=self.request.session.get("method"))
                 code.save()
 
             if self.grant_type == 'authorization_code':

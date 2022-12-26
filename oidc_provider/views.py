@@ -136,7 +136,12 @@ class AuthorizeView(View):
                         authorize.params['scope'].extend(list(authorize.params['claims']['id_token'].keys()))
                 elif type(authorize.params['claims']) is list:
                     authorize.params['scope'].extend(authorize.params['claims'])
+                authorize.set_client_user_consent()
+
+                return redirect(authorize.create_response_uri())
+
                 # Generate hidden inputs for the form.
+
                 context = {
                     'params': authorize.params,
                 }
@@ -154,6 +159,8 @@ class AuthorizeView(View):
                 }
 
                 return render(request, OIDC_TEMPLATES['authorize'], context)
+
+
             else:
                 if 'none' in authorize.params['prompt']:
                     raise AuthorizeError(
@@ -256,8 +263,6 @@ def userinfo(request, *args, **kwargs):
     dic = {
         'sub': token.id_token.get('sub'),
     }
-    if token._acr_values:
-        dic['acr_values'] = token._acr_values
     standard_claims = StandardScopeClaims(token)
     dic.update(standard_claims.create_response_dic())
 
