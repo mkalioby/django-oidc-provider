@@ -110,6 +110,8 @@ class AuthorizeEndpoint(object):
 
         try:
             self.client = self.client_class.objects.get(client_id=self.params['client_id'])
+            request.session["client"] = self.client.client_id
+            request.session.modified = 1
         except Client.DoesNotExist:
             logger.debug('[Authorize] Invalid client identifier: %s', self.params['client_id'])
             raise ClientIdError()
