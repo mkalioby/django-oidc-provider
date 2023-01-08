@@ -59,7 +59,7 @@ class AuthorizeEndpoint(object):
             self.grant_type = 'hybrid'
         else:
             self.grant_type = None
-
+        request.session["grant_type"] = self.grant_type
         # Determine if it's an OpenID Authentication request (or OAuth2).
         self.is_authentication = 'openid' in self.params['scope']
 
@@ -83,6 +83,8 @@ class AuthorizeEndpoint(object):
         self.params['state'] = query_dict.get('state', '')
         self.params['nonce'] = query_dict.get('nonce', '')
         self.params['max_age'] = query_dict.get('max_age', '')
+        self.params['login_hint'] = query_dict.get('login_hint', '')
+        self.params['signature'] = query_dict.get('signature', '')
         acr_values = query_dict.get('acr_values', None)
         if acr_values:
             self.params['acr_values']=acr_values.split()
@@ -113,6 +115,11 @@ class AuthorizeEndpoint(object):
         except Client.DoesNotExist:
             logger.debug('[Authorize] Invalid client identifier: %s', self.params['client_id'])
             raise ClientIdError()
+        if self.params["signature"]:
+            decoded = jwt.decode(self.params["signature"],self.client.client_secret,algorithms=['HS256'])
+            if decoded["state"] != self.params["state"] or self.params["login_hint"] != decoded["login_hint"]:
+                raise AuthorizeError(
+                    self.params['redirect_uri'], 'invalid_signature', self.grant_type)
 
         # Redirect URI validation.
         if self.is_authentication and not self.params['redirect_uri']:

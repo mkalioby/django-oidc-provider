@@ -96,6 +96,8 @@ class AuthorizeError(Exception):
 
         'registration_not_supported': 'The provider does not support use of '
                                       'the registration parameter',
+        'invalid_signature': "your request is not properly signed",
+        'registration_failed': "The user failed to register a key"
     }
 
     def __init__(self, redirect_uri, error, grant_type):

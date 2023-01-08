@@ -70,7 +70,7 @@ class AuthorizeView(View):
         try:
             authorize.validate_params()
 
-            if get_attr_or_callable(request.user, 'is_authenticated'):
+            if request.session.get("registered") or get_attr_or_callable(request.user, 'is_authenticated'):
                 # Check if there's a hook setted.
                 hook_resp = settings.get('OIDC_AFTER_USERLOGIN_HOOK', import_str=True)(
                     request=request, user=request.user,
@@ -78,11 +78,12 @@ class AuthorizeView(View):
                 if hook_resp:
                     return hook_resp
                 if authorize.params['max_age']:
-                    from django.utils import timezone
-                    if (timezone.now() - request.user.last_login).total_seconds() > int(authorize.params['max_age']):
-                        django_user_logout(request)
-                        next_page = strip_prompt_login(request.get_full_path())
-                        return redirect_to_login(next_page, settings.get('OIDC_LOGIN_URL'))
+                    pass
+                    # from django.utils import timezone
+                    # if (timezone.now() - request.user.last_login).total_seconds() > int(authorize.params['max_age']):
+                    #     django_user_logout(request)
+                    #     next_page = strip_prompt_login(request.get_full_path())
+                    #     return redirect_to_login(next_page, settings.get('OIDC_LOGIN_URL'))
 
                 if 'login' in authorize.params['prompt']:
                     if 'none' in authorize.params['prompt']:
